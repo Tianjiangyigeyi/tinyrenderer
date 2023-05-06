@@ -3,8 +3,7 @@
 #include "tgaimage.h"
 #include "model.h"
 #include "geometry.h"
-#define INF 0x3f3f3f3f
-
+#define INF 255
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
@@ -12,9 +11,10 @@ Model *model = NULL;
 const int width = 800;
 const int height = 800;
 void triangle(Vec3f *screen_coords, float *zbuffer, TGAImage &image, TGAColor color);
-void triangle(Vec3f *screen_coords, float *zbuffer, TGAImage &image, TGAImage &tex, Vec3f *tex_coords, float intensity);
+void triangle(Vec3f *screen_coords, float *zbuffer, TGAImage &image, TGAImage &tex, Vec3f *tex_coords, float &intensity);
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color);
 Vec3f Barycentric(Vec3f *vertex, Vec2f p);
+const Vec3f camera = Vec3f(0, 0, 3);
 
 void line(int x0, int y0, int x1, int y1, TGAImage &image, TGAColor color)
 {
@@ -104,8 +104,10 @@ int main(int argc, char **argv)
             Vec3f v0 = model->vert(face[j].x);
             Vec3f vt = model->texture(face[j].y);
             world_coords[j] = v0;
-            screen_coords[j] = Vec3f((v0.x + 1) * width / 2, (v0.y + 1) * height / 2, v0.z);
+            // screen_coords[j] = Vec3f((v0.x + 1) * width / 2, (v0.y + 1) * height / 2, v0.z);
             tex_coords[j] = Vec3f(vt.x * tex.get_width(), vt.y * tex.get_height(), 0.);
+            screen_coords[j] = Vec3f(((v0.x / (1 - v0.z / camera.z)) + 1) * width / 2 , ((v0.y / (1 - v0.z / camera.z)) + 1) * height / 2, v0.z / (1 - v0.z / camera.z));
+            // tex_coords[j] = Vec3f(vt.x * tex.get_width(), vt.y * tex.get_height(), 0.);
         }
         // 计算的不是面的法线, 而是面的法线的反向向量, 因为要和入射光的方向点乘得到光照强度
         Vec3f n = ((world_coords[2] - world_coords[0]) ^ (world_coords[1] - world_coords[0])).normalize();
@@ -170,7 +172,7 @@ Vec3f Barycentric(Vec3f *vertex, Vec2f p)
     return res;
 }
 
-void triangle(Vec3f *screen_coords, float *zbuffer, TGAImage &image, TGAImage &tex, Vec3f *tex_coords, float intensity)
+void triangle(Vec3f *screen_coords, float *zbuffer, TGAImage &image, TGAImage &tex, Vec3f *tex_coords, float &intensity)
 {
     float max[2], min[2];
     min[0] = width;
@@ -203,7 +205,7 @@ void triangle(Vec3f *screen_coords, float *zbuffer, TGAImage &image, TGAImage &t
                         color.raw[k] *= intensity;
                     }
                     image.set(i, j, color);
-                    zbuffer[i * width + j] = z_new;
+                    zbuffer[i * width + j] = z_new / (1 - z_new / camera.z);
                 }
             }
         }
