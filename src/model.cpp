@@ -5,7 +5,6 @@
 #include <vector>
 #include "model.h"
 
-//TODO: 纹理坐标
 
 /**
  * @brief Construct a new Model:: Model object, 读入顶点信息和面的信息, 不涉及面的纹理和法线

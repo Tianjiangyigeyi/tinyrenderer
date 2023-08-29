@@ -3,7 +3,7 @@
 #include "tgaimage.h"
 #include "model.h"
 #include "geometry.h"
-#define INF 255
+#define DEPTH 255
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red = TGAColor(255, 0, 0, 255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     float *zbuffer = new float[width * height];
     for (int i = 0; i < width * height; ++i)
     {
-        zbuffer[i] = -INF;
+        zbuffer[i] = -DEPTH;
     }
     for (int i = 0; i < model->nfaces(); i++)
     {
